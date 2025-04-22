@@ -1,0 +1,189 @@
+
+// Class for moveable objects like Pacman and Ghosts
+Class Moveable
+    position <- (x, y) coordinates of the object
+    subposition <- (sub_x, sub_y) sub-coordinates for finer movement
+    direction <- current direction of movement
+    sprites <- dictionary of sprites for different directions
+
+    function CONSTRUCTOR(input_starting_position, input_sprites) returns none
+        position <- Input_starting_position
+        direction <- none
+        sprites <- input_sprites
+
+    function DISPLAY(screen) returns none
+        if direction is up then
+            sprite <- sprites['up']
+        else if direction is down then
+            sprite <- sprites['down']
+        else if direction is left then
+            sprite <- sprites['left']
+        else if direction is right then
+            sprite <- sprites['right']
+
+        sprite <- display sprite to screen
+
+    function MOVE()
+        x <- x component of position
+        y <- y component of position
+        // Move the object based on its current direction
+        if direction is up then
+            y <- increment by 1
+        else if direction is down then
+            y <- decrement by 1
+        else if direction is left then
+            x <- decrement by 1
+        else if direction is right then
+            x <- increment by 1
+
+
+// Class for Pacman
+Class Pacman inherits Moveable
+
+    player <- player controlling Pacman
+    buffered_direction <- buffered direction input
+    supercharged <- boolean indicating if Pacman is supercharged
+
+
+    function CONSTRUCTOR(input_sprites, input_player, starting_position) returns none
+        position <- set as starting_position
+        player <- input_player
+        sprites <- input_sprites
+        supercharged <- False
+
+    //check if pacman can turn a given direciton, if he can't because of walls then buffer that input and exectue when it can
+    function CHANGE_DIRECTION(input_direction)
+        if can change driection then
+            direction <- input_direction
+        else
+            buffered_direction <-input_direction
+
+    function EAT(maze) returns none
+        if position in maze is pellet then
+            player.score <- increment by 10
+            maze <- remove pellet from maze
+        else if position in maze is power pellet then
+            supercharged <- true
+            maze <- remove PP from maze
+            player.score <- increment by 50
+        else if position in maze is cherry then
+            player.score <- increment by 100
+            maze <- remoe cherry from maze
+
+// Class for Ghosts
+Class Ghost inherits Moveable
+
+    target_positon <- ghosts targetting position it is tryign to get to  
+
+    function EAT(pacman) returns true if pacman is eaten
+        if position is pacman position then return True
+            else return false
+        //Determine direction ghost should tu
+    
+    //determine what positon to turn to get to the desired target location
+    function PATHFIND() returns none
+        cells <- array of possible tiles directly adjacent to position
+        //find direction that takes the shortest direct path to target tile
+        for cell in cells do
+            distance <- euclidean distance from cell to target_positon
+        target_cell <- choose cell with lowest distance
+        direction <- turn to move to target_cell
+
+    function CHASE(pacman, maze) returns none
+        //logic for chase implemented by sub_class ghosts
+    
+    //to scatter al ghosts run to a given corner
+    function SCATTER(corner) returns none
+
+Class Blinky inherits Ghost
+    //blinky targets pacman directly
+    function CHASE(pacmanm, maze)
+        target_tile <- pacman.position
+
+    Class Pinky inherits Ghost
+        // Pinky targets a few tiles ahead of Pacman's current direction
+        function CHASE(pacman, maze)
+            x <- x component of pacman.position
+            y <- y component of pacman.position
+            if pacman.direction is up then
+                target_tile <- (x, y+4)
+            else if pacman.direction is down then
+                target_tile <- (x, y-4)
+            else if pacman.direction is left then
+                target_tile <- (x-4,y)
+            else if pacman.direction is right then
+                target_tile <- (x+4,y)
+
+    Class Inky inherits Ghost
+        // Inky targets a position based on Blinky's position and Pacman's position
+        function CHASE(pacman, maze, blinky)
+            //draw vector from blinky to pacman and double that vector to find target tile
+            blinky_vector <- (blinky.position.x - pacman.position.x, blinky.position.y - pacman.position.y)
+            blinky_vector <- scale by 2
+            target_tile <- blinky.position + blinky_vector
+
+    Class Clyde inherits Ghost
+        // Clyde targets Pacman directly if far away, otherwise targets a corner
+        function CHASE(pacman, maze)
+            distance <- euclidean distance from position to pacman.position
+            if distance > 8 then
+                target_tile <- pacman.position
+            else
+                target_tile <- Clyde's scatter corner
+
+// Class for Maze
+Class Maze
+    function CONSTRUCTOR(sprites) returns none
+        maze_boundaries <- 2D array representing maze boundaries
+        maze_elems <- 2D array representing maze elements
+        sprites <- dictionary of sprites for maze elements
+
+    
+
+Class player
+    function CONSTRUCTOR(input_name) returns none
+        lives <- pacman starts with 3 lives
+        score <- set as 0
+        name <- set as input_name
+
+// Class for Game
+Class Game
+
+
+    function CONSTRUCTOR() returns none
+            player <- Player(player_name)
+            maze <- Maze()
+            pacman <- pacman(player)
+            ghosts <- list of Ghost()
+            game_over <- keep track of if game has ended
+
+    function UPDATE() returns none
+        if lives is 0 then
+            game_over <- set as true
+            end game in loss
+
+        player_direction <- player inputted direction based on arrow keys
+        pacman.direction <- set as player_direction
+        pacman.MOVE()
+        for ghost in ghosts
+            ghost.MOVE()
+            if ghost.EAT(pacman)
+                player.lives <- decrement by 1
+                pacman <- reset position
+                ghosts <- reset positons
+
+        if for cell in maze do 
+            if all pellets gone then
+                game_over is true
+                end game in victory
+
+        
+
+
+// Main function
+function main() returns none
+    game <- new Game()
+
+    while True
+        game.update()
+
